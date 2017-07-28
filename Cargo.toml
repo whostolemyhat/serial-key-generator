@@ -1,7 +1,8 @@
 [package]
 name = "keygen"
-version = "0.1.0"
-authors = ["James Tease <james.tease@basekit.com>"]
+version = "0.2.0"
+authors = ["James Tease <james@jamestease.co.uk>"]
 
 [dependencies]
 regex = "0.2"
+crc = "1.5"
