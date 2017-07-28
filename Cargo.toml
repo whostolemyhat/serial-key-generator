@@ -1,0 +1,7 @@
+[package]
+name = "keygen"
+version = "0.1.0"
+authors = ["James Tease <james.tease@basekit.com>"]
+
+[dependencies]
+regex = "0.2"
