@@ -1,6 +1,6 @@
+// based on http://www.brandonstaggs.com/2007/07/26/implementing-a-partial-serial-number-verification-system-in-delphi/
 use regex::Regex;
 
-// based on http://www.brandonstaggs.com/2007/07/26/implementing-a-partial-serial-number-verification-system-in-delphi/
 #[derive(Debug, PartialEq)]
 pub enum Status {
 	Good,
@@ -22,8 +22,9 @@ fn get_key_byte(seed: &i64, a: u32, b: u32, c: u32) -> String {
 
 	result = result & 0xFF;
 
-	// formats to uppercase hex
-	format!("{:X}", result)
+	// formats to uppercase hex, must be 2 chars with leading 0s
+	// https://doc.rust-lang.org/std/fmt/#width
+	format!("{:01$X}", result, 2)
 }
 
 fn get_checksum(s: &str) -> String {
@@ -44,7 +45,8 @@ fn get_checksum(s: &str) -> String {
 
 	let sum = (left << 8) + right;
 
-	format!("{:X}", sum)
+	// format as upperhex with leading 0s, must be 4 chars long
+	format!("{:01$X}", sum, 4)
 }
 
 pub fn make_key(seed: &i64) -> String {
@@ -52,7 +54,8 @@ pub fn make_key(seed: &i64) -> String {
 	key_bytes.push(get_key_byte(&seed, 24, 3, 200));
 	key_bytes.push(get_key_byte(&seed, 10, 0, 56));
 	key_bytes.push(get_key_byte(&seed, 1, 2, 91));
-	key_bytes.push(get_key_byte(&seed,7, 1, 100));
+	key_bytes.push(get_key_byte(&seed, 7, 1, 100));
+
 
 	let mut result = format!("{:X}", seed);
 	for byte in key_bytes {
@@ -61,18 +64,31 @@ pub fn make_key(seed: &i64) -> String {
 
 	result = format!("{}{}", result, get_checksum(&result[..]));
 
-	let mut subs: Vec<&str> = vec![];
-	let mut i = 0;
-	let step = 4;
-	while i < result.len() {
-		subs.push(&result[i..i + step]);
-		i += step;
+	// let mut subs: Vec<&str> = vec![];
+	// let mut i = 0;
+	// let step = 4;
+
+	// while i < result.len() {
+	// 	let mut end = i + step;
+	// 	if end > result.len() {
+	// 		end = result.len();
+	// 	}
+	// 	subs.push(&result[i..end]);
+	// 	i += step;
+	// }
+	// subs.join("-")
+
+	// keys should always be 20 digits, but use chunks rather than loop to be sure
+	let subs: Vec<&str> = result.split("").filter(|s| s.len() > 0).collect();
+	let mut key: Vec<String> = vec![];
+	for chunk in subs.chunks(4) {
+		key.push(chunk.join(""));
 	}
 
-	subs.join("-")
+	key.join("-")
 }
 
-fn check_key_checksum(key: &str) -> bool {
+pub fn check_key_checksum(key: &str) -> bool {
 	let mut result = false;
 	let s = key.replace("-", "").to_uppercase();
 	let length = s.len();
