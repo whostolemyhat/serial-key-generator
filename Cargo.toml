@@ -7,3 +7,4 @@ authors = ["James Tease <james@jamestease.co.uk>"]
 regex = "0.2"
 crc = "1.5"
 clap = "2.24"
+rand = "0.3"
