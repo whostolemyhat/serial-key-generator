@@ -11,7 +11,7 @@ use crc::{ crc32 };
 #[derive(Debug)]
 pub struct Config<'a> {
     num_bytes: i8, // TODO: min num
-    byte_shifts: Vec<Vec<i16>>, // TODO: must be 3 long
+    byte_shifts: Vec<(i16, i16, i16)>, // TODO: must be 3 long
     hash: &'a str,
     blacklist: Vec<&'a str>
 }
@@ -19,7 +19,7 @@ pub struct Config<'a> {
 fn main() {
     let config = Config {
         num_bytes: 4,
-        byte_shifts: vec![vec![24, 3, 200], vec![10, 0, 56], vec![1, 2, 91], vec![7, 1, 100]],
+        byte_shifts: vec![(24, 3, 200), (10, 0, 56), (1, 2, 91), (7, 1, 100)],
         hash: "hello",
         blacklist: vec!["11111111"]
     };
@@ -30,6 +30,10 @@ fn main() {
     // let blacklist = vec!["11111111"]; // 9227B6EA
     // let hash = "hello";
     // let key = "3ABC-9099-E39D-4E65-E060";
+    // TODO: create config and give to user eg bytes and transforms used, hash for crc32
+    // TODO: flow: keygen myname@example.com => 1234-1234-1234-1234
+    // keygen verify 1234-1324-1234-1234 => Status
+    // keygen checksum e096 => Status
 
     let matches = App::new("Keygen")
                     .version("1.0")
@@ -76,9 +80,4 @@ fn main() {
         },
         None => {}
     };
-
-    // TODO: create config and give to user eg bytes and transforms used, hash for crc32
-    // TODO: flow: keygen myname@example.com => 1234-1234-1234-1234
-    // keygen verify 1234-1324-1234-1234 => Status
-    // keygen checksum e096 => Status
 }

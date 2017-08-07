@@ -52,13 +52,14 @@ fn get_checksum(s: &str) -> String {
     format!("{:01$X}", sum, 4)
 }
 
-pub fn make_key(seed: &i64, num_bytes: &i8, byte_shifts: &Vec<Vec<i16>>) -> String {
+pub fn make_key(seed: &i64, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) -> String {
     let mut key_bytes: Vec<String> = vec![];
 
     // TODO: range check
     for i in 0..*num_bytes {
         let index = i as usize;
-        key_bytes.push(get_key_byte(&seed, byte_shifts[index][0], byte_shifts[index][1], byte_shifts[index][2]));
+        let shift = byte_shifts[index];
+        key_bytes.push(get_key_byte(&seed, shift.0, shift.1, shift.2));
     }
 
     let mut result = format!("{:X}", seed);
@@ -93,7 +94,7 @@ pub fn check_key_checksum(key: &str) -> bool {
     result
 }
 
-pub fn check_key(s: &str, blacklist: &Vec<&str>, num_bytes: &i8, byte_shifts: &Vec<Vec<i16>>) -> Status {
+pub fn check_key(s: &str, blacklist: &Vec<&str>, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) -> Status {
     if !check_key_checksum(s) {
         return Status::Invalid;
     }
@@ -131,15 +132,13 @@ pub fn check_key(s: &str, blacklist: &Vec<&str>, num_bytes: &i8, byte_shifts: &V
     let mut checked: Vec<i8> = Vec::new();
 
     for _ in 0..bytes_to_check {
-        let mut byte = rand::thread_rng().gen_range(0, num_bytes - 1);
-        while checked.contains(&byte) {
-            byte = rand::thread_rng().gen_range(0, num_bytes - 1);
+        let mut byte_to_check = rand::thread_rng().gen_range(0, num_bytes - 1);
+        while checked.contains(&byte_to_check) {
+            byte_to_check = rand::thread_rng().gen_range(0, num_bytes - 1);
         }
-        checked.push(byte);
+        checked.push(byte_to_check);
 
-        // TODO: bound checking
-        println!("checking {:?}", byte);
-        let start = ((byte * 2) + 8) as usize;
+        let start = ((byte_to_check * 2) + 8) as usize;
         let end = start + 2;
 
         if end > key.len() {
@@ -147,11 +146,9 @@ pub fn check_key(s: &str, blacklist: &Vec<&str>, num_bytes: &i8, byte_shifts: &V
         }
 
         let key_byte = &key[start..end];
-        let shifts = &byte_shifts[byte as usize];
+        let shifts = &byte_shifts[byte_to_check as usize];
 
-        let byte = get_key_byte(&seed_num, shifts[0], shifts[1], shifts[2]);
-
-        println!("{:?} {:?}", key_byte, byte);
+        let byte = get_key_byte(&seed_num, shifts.0, shifts.1, shifts.2);
         if key_byte != byte {
             return Status::Phony;
         }
@@ -184,7 +181,7 @@ mod test {
     fn test_make_key() {
         let seed = 0x3abc9099;
         let num_bytes = 4;
-        let byte_shifts = vec![vec![24, 3, 200], vec![10, 0, 56], vec![1, 2, 91], vec![7, 1, 100]];
+        let byte_shifts = vec![(24, 3, 200), (10, 0, 56), (1, 2, 91), (7, 1, 100)];
         assert_eq!("3ABC-9099-E39D-4E65-E060", super::make_key(&seed, &num_bytes, &byte_shifts));
     }
 
@@ -193,7 +190,7 @@ mod test {
         let key = "3ABC-9099-E39D-4E65-E060";
         let blacklist = vec![];
         let num_bytes = 4;
-        let byte_shifts = vec![vec![24, 3, 200], vec![10, 0, 56], vec![1, 2, 91], vec![7, 1, 100]];
+        let byte_shifts = vec![(24, 3, 200), (10, 0, 56), (1, 2, 91), (7, 1, 100)];
         assert_eq!(super::check_key(&key, &blacklist, &num_bytes, &byte_shifts), super::Status::Good);
 
         let inconsistent_key = "3abC-9099-e39D-4E65-E060";
@@ -220,7 +217,7 @@ mod test {
         let key = "3ABC-9099-E39D-4E65-E060";
         let blacklist = vec!["3abc9099"];
         let num_bytes = 4;
-        let byte_shifts = vec![vec![24, 3, 200], vec![10, 0, 56], vec![1, 2, 91], vec![7, 1, 100]];
+        let byte_shifts = vec![(24, 3, 200), (10, 0, 56), (1, 2, 91), (7, 1, 100)];
 
         assert_eq!(super::check_key(&key, &blacklist, &num_bytes, &byte_shifts), super::Status::Blacklisted);
     }
