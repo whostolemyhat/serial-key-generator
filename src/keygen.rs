@@ -79,23 +79,23 @@ pub fn make_key(seed: &i64, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) 
     key.join("-")
 }
 
-pub fn check_key_checksum(key: &str) -> bool {
-    let mut result = false;
+pub fn check_key_checksum(key: &str, num_bytes: &i8) -> bool {
     let s = key.replace("-", "").to_uppercase();
     let length = s.len();
 
-    if length != 20 {
-        return result;
+    // length = 8 (seed) + 4 (checksum) + 2 * num_bytes
+    if length != (12 + (2 * num_bytes)) as usize {
+        return false;
     }
 
     let checksum = &s[length - 4..length];
-    let slice = &s[..16];
-    result = checksum == get_checksum(&slice);
-    result
+    let slice = &s[..length - 4];
+
+    checksum == get_checksum(&slice)
 }
 
-pub fn check_key(s: &str, blacklist: &Vec<&str>, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) -> Status {
-    if !check_key_checksum(s) {
+pub fn check_key(s: &str, blacklist: &Vec<String>, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) -> Status {
+    if !check_key_checksum(s, num_bytes) {
         return Status::Invalid;
     }
 
