@@ -55,14 +55,13 @@ fn get_checksum(s: &str) -> String {
 pub fn make_key(seed: &i64, num_bytes: &i8, byte_shifts: &Vec<(i16, i16, i16)>) -> String {
     let mut key_bytes: Vec<String> = vec![];
 
-    // TODO: range check
     for i in 0..*num_bytes {
         let index = i as usize;
         let shift = byte_shifts[index];
         key_bytes.push(get_key_byte(&seed, shift.0, shift.1, shift.2));
     }
 
-    let mut result = format!("{:X}", seed);
+    let mut result = format!("{:01$X}", seed, 8);
     for byte in key_bytes {
         result = format!("{}{}", result, byte);
     }
