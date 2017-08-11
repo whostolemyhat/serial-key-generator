@@ -17,6 +17,7 @@ use serde_json::Error;
 use std::io;
 use std::io::{ Read, Write };
 use std::fs::File;
+use std::path::Path;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -27,13 +28,13 @@ pub struct Config {
 }
 
 impl Config {
-    fn new(hash: &str) -> Config {
+    fn new(hash: &str, num_bytes: i8, blacklist: Vec<String>) -> Config {
         let hash_str = hash.to_string();
         Config {
-            num_bytes: 12,
-            byte_shifts: generate_shifts(12),
+            num_bytes: num_bytes,
+            byte_shifts: generate_shifts(num_bytes),
             hash: hash_str.clone(),
-            blacklist: vec!["11111111".to_string()]
+            blacklist
         }
     }
 }
@@ -59,8 +60,8 @@ fn read_config_from_file() -> Result<Config, io::Error> {
     Ok(config)
 }
 
-fn write_config(config_json: &str) -> Result<(), io::Error> {
-    let mut f = File::create("config.json")?;
+fn write_config(config_json: &str, path: &Path) -> Result<(), io::Error> {
+    let mut f = File::create(path)?;
     f.write_all(&config_json.as_bytes())?;
     Ok(())
 }
@@ -75,6 +76,7 @@ fn main() {
 
     // TODO: flow: keygen myname@example.com => 1234-1234-1234-1234
     // keygen create -s SEED -h HASH -c CONFIG -b BLACKLIST -l LENGTH
+    // keygen create -s jamestease@hotmail.com -h brian -b 11111111 -b 22222222 -l 32 -c config.json
     // keygen verify 1234-1324-1234-1234 => Status
     // keygen checksum e096 => Status
 
@@ -89,30 +91,65 @@ fn main() {
                             .short("s")
                             .long("seed")
                             .value_name("SEED")
+                            .takes_value(true)
                             .required(true))
-                        .arg(Arg::with_name("HASH")
-                             .help("String to add to the key to create a hash")
-                             .short("h")
-                             .long("hash")
-                             .value_name("HASH")
-                            .required(true)))
+                        .arg(Arg::with_name("hash")
+                            .help("String to add to the key to create a hash")
+                            .short("h")
+                            .long("hash")
+                            .value_name("HASH")
+                            .takes_value(true)
+                            .required(true))
+                        .arg(Arg::with_name("length")
+                            .help("Number of bytes to create in key")
+                            .short("l")
+                            .long("length")
+                            .takes_value(true)
+                            .value_name("LENGTH"))
+                        .arg(Arg::with_name("config")
+                            .help("Path to save config file")
+                            .short("c")
+                            .long("config")
+                            .takes_value(true)
+                            .value_name("CONFIG"))
+                        .arg(Arg::with_name("blacklist")
+                            .help("Seed values to add to blacklist")
+                            .short("b")
+                            .long("blacklist")
+                            .takes_value(true)
+                            .multiple(true)
+                            .value_name("BLACKLIST"))
+                    )
                     .subcommand(SubCommand::with_name("verify")
                                 .about("Check if key is valid")
-                                .arg(Arg::with_name("KEY")
-                                        .required(true)))
+                                .arg(Arg::with_name("key")
+                                    .help("Key to check")
+                                    .short("k")
+                                    .long("key")
+                                    .takes_value(true)
+                                    .value_name("KEY")
+                                    .required(true)))
                     .subcommand(SubCommand::with_name("checksum")
                                 .about("Check if key checksum is valid")
-                                .arg(Arg::with_name("KEY")
-                                     .required(true))
-                                .arg(Arg::with_name("CONFIG")
-                                     .required(true)))
+                                .arg(Arg::with_name("key")
+                                    .help("Key to check")
+                                    .short("k")
+                                    .long("key")
+                                    .takes_value(true)
+                                    .required(true))
+                                .arg(Arg::with_name("config")
+                                    .help("Path to config file")
+                                    .short("c")
+                                    .long("config")
+                                    .takes_value(true)
+                                    .required(true)))
                     .get_matches();
 
     let verify = matches.subcommand_matches("verify");
     // TODO: read config from file
     match verify {
         Some(arg) => {
-            let key = arg.value_of("KEY").unwrap(); // required so unwrap ok
+            let key = arg.value_of("key").unwrap(); // required so unwrap ok
             match read_config_from_file() {
                 Ok(config) => {
                     println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts));
@@ -141,21 +178,36 @@ fn main() {
     let create = matches.subcommand_matches("create");
     match create {
         Some(arg) => {
-            // TODO: take hash
             let hash = arg.value_of("hash").unwrap();
-            let config = Config::new(hash);
-            // TODO: unwrap
-            let config_json = config_to_json(&config).unwrap();
+            let len = arg.value_of("length").unwrap_or("8");
+            let num_bytes: i8 = len.parse().expect("Max bytes needs to be i8");
 
-            println!("Save this configuration data! You will need it to validate keys.");
-            println!("{:?}", config_json);
-            match write_config(&config_json) {
-                Err(e) => println!("Error saving config: {:?}", e),
-                Ok(_) => println!("Config file saved at config.json")
+            let mut blacklist: Vec<String> = vec![];
+            if arg.is_present("blacklist") {
+                // convert Vec<str> to Vec<String>
+                blacklist = arg.values_of("blacklist").unwrap().map(|s| s.to_string()).collect();
+            }
+            println!("{:?}", blacklist);
+
+            let config = Config::new(hash, num_bytes, blacklist);
+            let config_json = config_to_json(&config).expect("Error creating config");
+
+            match arg.value_of("config") {
+                Some(path) => {
+                    match write_config(&config_json, Path::new(path)) {
+                        Err(e) => println!("Error saving config: {:?}", e),
+                        Ok(_) => println!("Config file saved at {}", path)
+                    }
+                },
+                None => {
+                    println!("Save this configuration data! You will need it to validate keys.");
+                    println!("{}", config_json);
+                    println!("==========");
+                }
             }
 
+
             let input = arg.value_of("seed").unwrap();
-            println!("inouyt {:?}", input);
             let seed = crc32::checksum_ieee(format!("{}+{}", input, &config.hash).as_bytes()) as i64;
             let key = make_key(&seed, &config.num_bytes, &config.byte_shifts);
             println!("{}", key);
