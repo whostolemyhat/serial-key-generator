@@ -66,6 +66,14 @@ fn write_config(config_json: &str, path: &Path) -> Result<(), io::Error> {
     Ok(())
 }
 
+fn create_hash() -> String {
+    let len = rand::thread_rng().gen_range(24, 32);
+    rand::thread_rng()
+        .gen_ascii_chars()
+        .take(len)
+        .collect()
+}
+
 fn main() {
     // black list is array of seeds
     // let blacklist = vec!["11111111"]; // 9227B6EA
@@ -202,7 +210,8 @@ fn main() {
                 },
                 false => {
                     // create new config
-                    let hash = arg.value_of("hash").unwrap();
+                    let gen_hash = create_hash();
+                    let hash = arg.value_of("hash").unwrap_or(&gen_hash[..]);
                     let len = arg.value_of("length").unwrap_or("8");
                     let num_bytes: i8 = len.parse().expect("Max bytes needs to be i8");
                     let mut blacklist: Vec<String> = vec![];
@@ -227,7 +236,7 @@ fn main() {
                     if !arg.is_present("config") {
                         println!("Save this configuration data! You will need it to validate keys.");
                         println!("{}", config_json);
-                        println!("==========");
+                        println!("--");
                     }
                 }
             }
@@ -238,8 +247,8 @@ fn main() {
             let key = make_key(&seed, &config.num_bytes, &config.byte_shifts);
 
             println!("{}", key);
-            println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts));
-            println!("{:?}", check_key_checksum(&key, &config.num_bytes));
+            // println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts));
+            // println!("{:?}", check_key_checksum(&key, &config.num_bytes));
         },
         None => {}
     };
