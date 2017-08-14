@@ -3,6 +3,7 @@
 ## Installation
 
 Windows/Linux: Compile from source using Rust - no binaries at the mo.
+
 Mac: target/release/keygen
 
 ## Usage
@@ -13,60 +14,60 @@ The serial key can be checked for validity, either by using a checksum or by ver
 
 
 ### `keygen create`
-    Creates a key from an initial string value.
+Creates a key from an initial string value.
 
-    `-s --seed REQUIRED`
-    Initial value to use to create the string
+`-s --seed REQUIRED`
+Initial value to use to create the string
 
-    ```keygen create -s myname@example.com```
+```keygen create -s myname@example.com```
 
-    `-h --hash`
-    String to combine with the seed when creating the key. If you don't provide a hash, a random one will be generated and used.
+`-h --hash`
+String to combine with the seed when creating the key. If you don't provide a hash, a random one will be generated and used.
 
-    ```keygen create -s myname@example.com -h aLongstringValueasaHash```
+```keygen create -s myname@example.com -h aLongstringValueasaHash```
 
-    `-c -- config`
-    Path to existing JSON config file. This file will be read when creating the key.
+`-c -- config`
+Path to existing JSON config file. This file will be read when creating the key.
 
-    ```keygen create -s myname@example.com -c config.json```
+```keygen create -s myname@example.com -c config.json```
 
-    `-b -- blacklist MULTIPLE`
-    Seed values to add to a blacklist. Any keys with seed values in the blacklist will fail verification.
+`-b -- blacklist MULTIPLE`
+Seed values to add to a blacklist. Any keys with seed values in the blacklist will fail verification.
 
-    ```keygen create -s myname@examplecom -b 11111111 -b 22222222```
+```keygen create -s myname@examplecom -b 11111111 -b 22222222```
 
-    `-l --length`
-    Number of bytes to create in the key. Longer keys should be tricker to crack but are more difficult for users to type. Keys are made up of the seed (8 characters long), a length of bytes (2 characters per byte), then the checksum (4 characters).
+`-l --length`
+Number of bytes to create in the key. Longer keys should be tricker to crack but are more difficult for users to type. Keys are made up of the seed (8 characters long), a length of bytes (2 characters per byte), then the checksum (4 characters).
 
-    ```keygen create -s myname@example.com -l 12 // => 53A5-4C20-7474-CC94-AF39-B63D-8B34-54A7-C1DA
-    keygen create -s myname@example.com -l 4 // => 53A5-4C20-A43E-6490-052A```
+```keygen create -s myname@example.com -l 12 // => 53A5-4C20-7474-CC94-AF39-B63D-8B34-54A7-C1DA
+keygen create -s myname@example.com -l 4 // => 53A5-4C20-A43E-6490-052A```
 
-    `-o --output`
-    Path to which to write config settings. When creating a key it's vital to save the config used to create the key, otherwise you won't be able to verify it. If you provide an output value, then a file with the value's name will be created and the config will be saved there as JSON. If this value isn't provided, JSON config will be printed out to the terminal.
+`-o --output`
+Path to which to write config settings. When creating a key it's vital to save the config used to create the key, otherwise you won't be able to verify it. If you provide an output value, then a file with the value's name will be created and the config will be saved there as JSON. If this value isn't provided, JSON config will be printed out to the terminal.
 
-    `keygen create -s myname@example.com -o config.json`
+`keygen create -s myname@example.com -o config.json`
 
 ### `keygen verify`
-    Check that a key is valid. Returns `Keygen::Status`.
+Check that a key is valid. Returns `Keygen::Status`.
 
-    ```keygen verify -k 1234-5678-abcd-1234 -c config.json // => Status::Good, Status::Invalid, Status::Blacklisted, Status::Phony```
+```keygen verify -k 1234-5678-abcd-1234 -c config.json // => Status::Good, Status::Invalid, Status::Blacklisted, Status::Phony```
 
-    `-k --key REQUIRED`
-    Key to check.
+`-k --key REQUIRED`
+Key to check.
 
-    `-c --config REQUIRED`
-    Path to JSON config file; must be the config used to create the key.
+`-c --config REQUIRED`
+Path to JSON config file; must be the config used to create the key.
 
 ### `keygen checksum`
-    Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`
+Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`
 
-    ```keygen verify -k 1234-5678-abcd-1234 -c config.json // => true```
+```keygen verify -k 1234-5678-abcd-1234 -c config.json // => true```
 
-    `-k --key REQUIRED`
-    Key to check.
+`-k --key REQUIRED`
+Key to check.
 
-    `-c --config REQUIRED`
-    Path to JSON config file; must be the config used to create the key.
+`-c --config REQUIRED`
+Path to JSON config file; must be the config used to create the key.
 
 
 ## Seeds
