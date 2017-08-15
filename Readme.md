@@ -6,6 +6,12 @@ The serial key can be checked for validity, either by using a checksum or by ver
 
 ## Installation
 
+### Cargo
+
+`cargo install keygen`
+
+### Other
+
 Windows/Linux: Compile from source using Rust - no binaries at the mo.
 
 Mac: [v1.1](./builds/osx/v1.1/keygen)
