@@ -4,7 +4,7 @@
 
 Windows/Linux: Compile from source using Rust - no binaries at the mo.
 
-Mac: target/release/keygen
+Mac: [v1.0](./builds/osx/v1.0/keygen)
 
 ## Usage
 
