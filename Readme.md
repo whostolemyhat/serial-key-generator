@@ -1,5 +1,9 @@
 # Keygen
 
+Creates a serial key from a seed, based [on this article](http://www.brandonstaggs.com/2007/07/26/implementing-a-partial-serial-number-verification-system-in-delphi/).
+
+The serial key can be checked for validity, either by using a checksum or by verifying bytes in the key.
+
 ## Installation
 
 Windows/Linux: Compile from source using Rust - no binaries at the mo.
@@ -7,11 +11,6 @@ Windows/Linux: Compile from source using Rust - no binaries at the mo.
 Mac: [v1.0](./builds/osx/v1.0/keygen)
 
 ## Usage
-
-Creates a serial key from a seed, based [on this article](http://www.brandonstaggs.com/2007/07/26/implementing-a-partial-serial-number-verification-system-in-delphi/).
-
-The serial key can be checked for validity, either by using a checksum or by verifying bytes in the key.
-
 
 ### `keygen create`
 Creates a key from an initial string value.
@@ -76,7 +75,7 @@ Path to JSON config file; must be the config used to create the key.
 Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`
 
 ```
-keygen verify -k 1234-5678-abcd-1234 -c config.json // => true
+keygen checksum -k 1234-5678-abcd-1234 -c config.json // => true
 ```
 
 #### `-k --key REQUIRED`
@@ -109,7 +108,8 @@ The config is vital once a key has been created - if you don't save the config, 
     ],
     "hash": "hash",             // the hash used in creating the string
     "blacklist": ["11111111"]   // blacklisted seeds
-}```
+}
+```
 
 ## Verification/Checksum
 
