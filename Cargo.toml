@@ -2,6 +2,11 @@
 name = "keygen"
 version = "1.1.0"
 authors = ["James Tease <james@jamestease.co.uk>"]
+repository = "https://github.com/whostolemyhat/serial-key-generator"
+homepage = "https://github.com/whostolemyhat/serial-key-generator"
+documentation = "https://github.com/whostolemyhat/serial-key-generator"
+license = "MIT"
+description = "Binary to create a verifiable serial key from a seed."
 
 [dependencies]
 regex = "0.2"
