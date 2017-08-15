@@ -1,6 +1,6 @@
 [package]
 name = "keygen"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["James Tease <james@jamestease.co.uk>"]
 
 [dependencies]
@@ -11,3 +11,4 @@ rand = "0.3"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
+serial-key = "1.0"

@@ -6,11 +6,10 @@ extern crate serde;
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
-
-mod keygen;
+extern crate serial_key;
 
 use clap::{ App, Arg, SubCommand };
-use keygen::{ make_key, check_key, check_key_checksum };
+use serial_key::{ make_key, check_key, check_key_checksum };
 use crc::{ crc32 };
 use rand::Rng;
 use serde_json::Error;

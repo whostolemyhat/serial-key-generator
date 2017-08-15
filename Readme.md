@@ -8,7 +8,7 @@ The serial key can be checked for validity, either by using a checksum or by ver
 
 Windows/Linux: Compile from source using Rust - no binaries at the mo.
 
-Mac: [v1.0](./builds/osx/v1.0/keygen)
+Mac: [v1.1](./builds/osx/v1.1/keygen)
 
 ## Usage
 
