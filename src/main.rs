@@ -3,6 +3,7 @@ extern crate crc;
 extern crate clap;
 extern crate rand;
 extern crate serde;
+#[macro_use]
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
@@ -24,6 +25,12 @@ pub struct Config {
     byte_shifts: Vec<(i16, i16, i16)>,
     hash: String,
     blacklist: Vec<String>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Output {
+    key: String,
+    config: Config
 }
 
 impl Config {
@@ -111,6 +118,10 @@ fn main() {
                             .long("output")
                             .takes_value(true)
                             .value_name("OUTPUT"))
+                        .arg(Arg::with_name("json")
+                            .help("Format output as JSON")
+                            .short("j")
+                            .long("json"))
                         .arg(Arg::with_name("blacklist")
                             .help("Seed values to add to blacklist")
                             .short("b")
@@ -201,6 +212,10 @@ fn main() {
                     }
                 };
 
+                let input = matches.value_of("seed").unwrap();
+                let seed = crc32::checksum_ieee(format!("{}+{}", input, &config.hash).as_bytes()) as i64;
+                let key = make_key(&seed, &config.num_bytes, &config.byte_shifts);
+
                 let config_json = config.config_to_json().expect("Error creating config");
 
                 match matches.value_of("output") {
@@ -211,20 +226,21 @@ fn main() {
                         }
                     },
                     None => {
-                        if !matches.is_present("config") {
+                        if matches.is_present("json") {
+                            let output_json = Output { key: key.clone(), config };
+                            println!("{}", json!(output_json));
+                        }
+
+                        if !matches.is_present("config") && !matches.is_present("json") {
                             println!("Save this configuration data! You will need it to validate keys.");
                             println!("{}", config_json);
                             println!("--");
+                            println!("{}", key);
                         }
                     }
                 }
 
-
-                let input = matches.value_of("seed").unwrap();
-                let seed = crc32::checksum_ieee(format!("{}+{}", input, &config.hash).as_bytes()) as i64;
-                let key = make_key(&seed, &config.num_bytes, &config.byte_shifts);
-
-                println!("{}", key);
+                // println!("{}", key);
                 // println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts));
                 // println!("{:?}", check_key_checksum(&key, &config.num_bytes));
             }
