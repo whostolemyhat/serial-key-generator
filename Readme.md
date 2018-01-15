@@ -71,7 +71,7 @@ Path to which to write config settings. When creating a key it's vital to save t
 Flag: if present, output will be written to stdout as JSON data. A config file **will not** be created/written if this flag is set.
 
 ```
-keygen create -s myname@example.com -l 8 -h abc123
+keygen create -s myname@example.com -l 8 -h abc123 -j
 
 // =>
 {"config":{"blacklist":[],"byte_shifts":[[98,133,163],[26,206,205],[244,140,88],[149,39,147],[208,215,29],[161,77,140],[178,216,229],[216,29,79]],"hash":"Cc7MgAsUr43PyT4U2zW5dDkVIKK23hB","num_bytes":8},"key":"92E7-A4A6-265A-5425-99FC-3088-C404"}
