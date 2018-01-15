@@ -58,11 +58,24 @@ keygen create -s myname@example.com -l 12 // => 53A5-4C20-7474-CC94-AF39-B63D-8B
 keygen create -s myname@example.com -l 4 // => 53A5-4C20-A43E-6490-052A
 ```
 
+
 #### `-o --output`
 
 Path to which to write config settings. When creating a key it's vital to save the config used to create the key, otherwise you won't be able to verify it. If you provide an output value, then a file with the value's name will be created and the config will be saved there as JSON. If this value isn't provided, JSON config will be printed out to the terminal.
 
 `keygen create -s myname@example.com -o config.json`
+
+
+#### `-j --json`
+
+Flag: if present, output will be written to stdout as JSON data. A config file **will not** be created/written if this flag is set.
+
+```
+keygen create -s myname@example.com -l 8 -h abc123
+
+// =>
+{"config":{"blacklist":[],"byte_shifts":[[98,133,163],[26,206,205],[244,140,88],[149,39,147],[208,215,29],[161,77,140],[178,216,229],[216,29,79]],"hash":"Cc7MgAsUr43PyT4U2zW5dDkVIKK23hB","num_bytes":8},"key":"92E7-A4A6-265A-5425-99FC-3088-C404"}
+```
 
 ### `keygen verify`
 Check that a key is valid. Returns `Keygen::Status`.
