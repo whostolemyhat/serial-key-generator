@@ -1,6 +1,6 @@
 [package]
 name = "keygen"
-version = "1.1.0"
+version = "1.2.1"
 authors = ["James Tease <james@jamestease.co.uk>"]
 repository = "https://github.com/whostolemyhat/serial-key-generator"
 homepage = "https://github.com/whostolemyhat/serial-key-generator"
