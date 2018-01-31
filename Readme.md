@@ -91,16 +91,21 @@ Key to check.
 Path to JSON config file; must be the config used to create the key.
 
 ### `keygen checksum`
-Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`
+Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`.
+Requires either the expected length of the key or a path to a config file (where it reads the expected length).
 
 ```
 keygen checksum -k 1234-5678-abcd-1234 -c config.json // => true
+keygen checksum -k 1234-5678-abcd-1234 -l 2 // => true
 ```
 
 #### `-k --key REQUIRED`
 Key to check.
 
-#### `-c --config REQUIRED`
+#### `-l --length REQUIRED` (required unless config argument provided)
+Expected length of key to check.
+
+#### `-c --config REQUIRED` (required unless length argument provided)
 Path to JSON config file; must be the config used to create the key.
 
 

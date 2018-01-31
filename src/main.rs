@@ -82,7 +82,7 @@ fn create_hash() -> String {
 
 fn main() {
     let matches = App::new("Keygen")
-                    .version("1.0")
+                    .version("1.3")
                     .author("James Tease <james@jamestease.co.uk>")
                     .about("Generates and verifies serial keys")
                     .subcommand(SubCommand::with_name("create")
@@ -158,7 +158,14 @@ fn main() {
                                     .short("c")
                                     .long("config")
                                     .takes_value(true)
-                                    .required(true)))
+                                    .required_unless("length"))
+                                .arg(Arg::with_name("length")
+                                     .help("Number of bytes expected in key")
+                                     .short("l")
+                                     .long("length")
+                                     .takes_value(true)
+                                     .required_unless("config"))
+                                )
                     .get_matches();
 
     match matches.subcommand_name() {
@@ -177,13 +184,21 @@ fn main() {
         Some("checksum") => {
             if let Some(ref matches) = matches.subcommand_matches("checksum") {
                 let key = matches.value_of("key").unwrap();
-                let path = matches.value_of("config").unwrap();
-                match read_config_from_file(Path::new(&path)) {
-                    Ok(config) => {
-                        println!("{:?}", check_key_checksum(&key, &config.num_bytes));
+                match matches.value_of("config") {
+                    Some(path) => {
+                        match read_config_from_file(Path::new(&path)) {
+                            Ok(config) => {
+                                println!("{:?}", check_key_checksum(&key, &config.num_bytes));
+                            },
+                            Err(e) => println!("Error with config: {:?}", e)
+                        }
                     },
-                    Err(e) => println!("Error with config: {:?}", e)
-                }
+                    None => {
+                        let length = matches.value_of("length").expect("length required");
+                        let len: i8 = length.parse().expect("Length must be a number");
+                        println!("{:?}", check_key_checksum(&key, &len));
+                    }
+                };
             }
         },
         Some("create") => {
