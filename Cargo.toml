@@ -8,9 +8,6 @@ documentation = "https://github.com/whostolemyhat/serial-key-generator"
 license = "MIT"
 description = "Binary to create a verifiable serial key from a seed."
 
-[dependencies.serial-key]
-path="../keygen-crate"
-
 [dependencies]
 regex = "0.2"
 crc = "1.5"
@@ -19,3 +16,4 @@ rand = "0.3"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
+serial-key = "2.0"
