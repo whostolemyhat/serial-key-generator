@@ -58,6 +58,14 @@ keygen create -s myname@example.com -l 12 // => 53A5-4C20-7474-CC94-AF39-B63D-8B
 keygen create -s myname@example.com -l 4 // => 53A5-4C20-A43E-6490-052A
 ```
 
+#### `-y --shifts`
+
+OPTIONAL Byte shifts to use when creating a key. If not provided, then these will be generated.
+Must be triplets of i16 ie 12,242,45 16,80,52
+
+```
+keygen create -y 74,252,42 178,245,197 1,201,98
+```
 
 #### `-o --output`
 
@@ -89,6 +97,17 @@ Key to check.
 
 #### `-c --config REQUIRED`
 Path to JSON config file; must be the config used to create the key.
+
+#### `-s --shifts`
+Byte shifts used when generating the key, triplets of i16. These must match the position params ie if position is [0, 1] then you must pass the first two byte shifts which were used when creating the key.
+
+#### `-p --positions`
+Bytes to check in the key
+ie with a key of 1234-5678-abcd-1234, positions of [0, 1] would check the first two bytes in the key (`ab` and `cd` - `1234-5678` is the seed value).
+
+```
+keygen verify -k 1234-5678-abcd-1234 -s 74,252,42 42,116,226 -p 0 1
+```
 
 ### `keygen checksum`
 Check that a key's checksum is correct (ie that the key hasn't been altered). Returns `bool`.

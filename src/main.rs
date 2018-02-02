@@ -44,6 +44,16 @@ impl Config {
         }
     }
 
+    fn new_with_shifts(hash: &str, num_bytes: i8, blacklist: Vec<String>, byte_shifts: Vec<(i16, i16, i16)>) -> Config {
+        let hash_str = hash.to_string();
+        Config {
+            num_bytes,
+            byte_shifts,
+            hash: hash_str.clone(),
+            blacklist
+        }
+    }
+
     pub fn config_to_json(&self) -> Result<String, Error> {
         let j = serde_json::to_string(&self)?;
         Ok(j)
@@ -82,7 +92,7 @@ fn create_hash() -> String {
 
 fn main() {
     let matches = App::new("Keygen")
-                    .version("1.3")
+                    .version("2.0")
                     .author("James Tease <james@jamestease.co.uk>")
                     .about("Generates and verifies serial keys")
                     .subcommand(SubCommand::with_name("create")
@@ -112,6 +122,12 @@ fn main() {
                             .long("config")
                             .takes_value(true)
                             .value_name("CONFIG"))
+                        .arg(Arg::with_name("shifts")
+                             .help("(i16,i16,i16) tuple of shifts for each byte. Byte shifts to use when creating the key")
+                             .short("y")
+                             .long("shifts")
+                             .takes_value(true)
+                             .multiple(true))
                         .arg(Arg::with_name("output")
                             .help("Path to save config file")
                             .short("o")
@@ -144,7 +160,22 @@ fn main() {
                                     .short("c")
                                     .long("config")
                                     .takes_value(true)
-                                    .required(true)))
+                                    .required_unless("shifts"))
+                                .arg(Arg::with_name("shifts")
+                                    .short("s")
+                                    .long("shifts")
+                                    .help("(i16,i16,i16) tuple of shifts for each byte. Must be the same as the shifts used to create the key.")
+                                    .takes_value(true)
+                                    .multiple(true)
+                                    .required_unless("config"))
+                                .arg(Arg::with_name("positions")
+                                     .short("p")
+                                     .long("positions")
+                                     .takes_value(true)
+                                     .multiple(true)
+                                     .help("List of byte positions to check.")
+                                     .required_unless("config"))
+                            )
                     .subcommand(SubCommand::with_name("checksum")
                                 .about("Check if key checksum is valid")
                                 .arg(Arg::with_name("key")
@@ -172,12 +203,45 @@ fn main() {
         Some("verify") => {
             if let Some(ref matches) = matches.subcommand_matches("verify") {
                 let key = matches.value_of("key").unwrap(); // required so unwrap ok
-                let path = matches.value_of("config").unwrap();
-                match read_config_from_file(Path::new(&path)) {
-                    Ok(config) => {
-                        println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts));
+                match matches.value_of("config") {
+                    Some(path) => {
+                        match read_config_from_file(Path::new(&path)) {
+                            Ok(config) => {
+                                println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts, Option::None));
+                            },
+                            Err(e) => panic!("Error with config: {:?}", e)
+                        }
                     },
-                    Err(e) => panic!("Error with config: {:?}", e)
+                    None => {
+                        let len = matches.value_of("length").unwrap_or("8");
+                        let num_bytes: i8 = len.parse().expect("Max bytes needs to be i8");
+                        let mut blacklist: Vec<String> = vec![];
+                        if matches.is_present("blacklist") {
+                            // convert Vec<str> to Vec<String>
+                            blacklist = matches.values_of("blacklist").unwrap().map(|s| s.to_string()).collect();
+                        }
+                        let mut byte_shifts: Vec<(i16, i16, i16)> = vec![];
+                        if matches.is_present("shifts") {
+                            let shifts: Vec<Vec<i16>> = matches.values_of("shifts").unwrap().map(|s| {
+                                let bytes: Vec<i16> = s.split(",").map(|s| s.parse().unwrap()).collect();
+                                bytes
+                            }).collect();
+
+                            for b in shifts {
+                                byte_shifts.push((b[0], b[1], b[2]));
+                            }
+
+                            let config = Config {
+                                hash: String::new(),
+                                num_bytes,
+                                blacklist,
+                                byte_shifts
+                            };
+
+                            let positions: Vec<i16> = matches.values_of("positions").unwrap().map(|s| s.parse().unwrap()).collect();
+                            println!("{:?}", check_key(&key, &config.blacklist, &config.num_bytes, &config.byte_shifts, Option::Some(positions)));
+                        }
+                    }
                 }
             }
         },
@@ -223,7 +287,26 @@ fn main() {
                             // convert Vec<str> to Vec<String>
                             blacklist = matches.values_of("blacklist").unwrap().map(|s| s.to_string()).collect();
                         }
-                        Config::new(hash, num_bytes, blacklist)
+
+                        if matches.is_present("shifts") {
+                            let mut byte_shifts: Vec<(i16, i16, i16)> = vec![];
+                            let shifts: Vec<Vec<i16>> = matches.values_of("shifts").unwrap().map(|s| {
+                                let bytes: Vec<i16> = s.split(",").map(|s| s.parse().unwrap()).collect();
+                                bytes
+                            }).collect();
+
+                            if shifts.len() != num_bytes as usize {
+                                panic!("Byte shift vector length must be as long as the key. Required length: {}, you provided: {} ({:?}) ", num_bytes, shifts.len(), shifts);
+                            }
+
+                            for b in shifts {
+                                byte_shifts.push((b[0], b[1], b[2]));
+                            }
+
+                            Config::new_with_shifts(hash, num_bytes, blacklist, byte_shifts)
+                        } else {
+                            Config::new(hash, num_bytes, blacklist)
+                        }
                     }
                 };
 
