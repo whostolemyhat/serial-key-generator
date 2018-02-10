@@ -95,13 +95,13 @@ keygen verify -k 1234-5678-abcd-1234 -c config.json // => Status::Good, Status::
 #### `-k --key REQUIRED`
 Key to check.
 
-#### `-c --config REQUIRED`
+#### `-c --config REQUIRED` (unless shifts and positions are passed)
 Path to JSON config file; must be the config used to create the key.
 
-#### `-s --shifts`
+#### `-s --shifts REQUIRED` (unless config provided)
 Byte shifts used when generating the key, triplets of i16. These must match the position params ie if position is [0, 1] then you must pass the first two byte shifts which were used when creating the key.
 
-#### `-p --positions`
+#### `-p --positions` (REQUIRED if shifts provided)
 Bytes to check in the key
 ie with a key of 1234-5678-abcd-1234, positions of [0, 1] would check the first two bytes in the key (`ab` and `cd` - `1234-5678` is the seed value).
 

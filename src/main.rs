@@ -92,7 +92,7 @@ fn create_hash() -> String {
 
 fn main() {
     let matches = App::new("Keygen")
-                    .version("2.0")
+                    .version("2.1")
                     .author("James Tease <james@jamestease.co.uk>")
                     .about("Generates and verifies serial keys")
                     .subcommand(SubCommand::with_name("create")
@@ -175,6 +175,13 @@ fn main() {
                                      .multiple(true)
                                      .help("List of byte positions to check.")
                                      .required_unless("config"))
+                                .arg(Arg::with_name("blacklist")
+                                    .help("Seed values to add to blacklist")
+                                    .short("b")
+                                    .long("blacklist")
+                                    .takes_value(true)
+                                    .multiple(true)
+                                    .value_name("BLACKLIST"))
                             )
                     .subcommand(SubCommand::with_name("checksum")
                                 .about("Check if key checksum is valid")
